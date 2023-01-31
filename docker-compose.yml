@@ -10,7 +10,7 @@ services:
       - 8000:8000
     volumes:
       - ./project3/app/:/app/
-    env_file: 
+    env_file:
       - ./.env
     depends_on:
       db:
@@ -21,7 +21,7 @@ services:
   db:
     container_name: db
     image: "postgres:15.1-alpine"
-    env_file: 
+    env_file:
       - ./.env
     healthcheck:
       test: pg_isready -U postgres -d mydb
