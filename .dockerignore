@@ -1,8 +1,3 @@
 ./.git
-./project3/app/__pycache__
-./project3/app/.idea
-./project3/app/venv
-./project3/test/venv
-./project3/test/.pytest_cache
-./project3/test/__pycache__
-
+./venv
+./.idea
