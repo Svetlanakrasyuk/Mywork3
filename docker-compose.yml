@@ -1,0 +1,46 @@
+version: '3.8'
+name: project
+services:
+  web:
+    container_name: app
+    build:
+      context: .
+      dockerfile: Dockerfile_app
+    ports:
+      - 8000:8000
+    volumes:
+      - ./project3/app/:/app/
+    env_file: 
+      - ./.env
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: always
+    networks:
+      - some-net
+  db:
+    container_name: db
+    image: "postgres:15.1-alpine"
+    env_file: 
+      - ./.env
+    healthcheck:
+      test: pg_isready -U postgres -d mydb
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - some-net
+    expose:
+      - 5432
+  cashe:
+    container_name: cache_db
+    image: redis
+    networks:
+      - some-net
+    expose:
+      - 6379
+    command: redis-server --save ""
+
+networks:
+  some-net:
+    name: some-net
