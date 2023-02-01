@@ -9,8 +9,10 @@ services:
     depends_on:
       web:
         condition: service_healthy
-    network_mode: "host"
+#    network_mode: "host"
     command: "pytest app/test_main.py"
+    networks:
+      - my-net
     expose:
       - 6379
       - 8000
@@ -19,8 +21,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile_app
-    ports:
-      - 8000:8000
+#    ports:
+#      - 8000:8000
     volumes:
       - ./project3/app/:/app/
     env_file:
@@ -55,8 +57,8 @@ services:
     image: redis
     networks:
       - my-net
-    ports:
-      - 6379:6379
+#    ports:
+#      - 6379:6379
     expose:
       - 6379
 
