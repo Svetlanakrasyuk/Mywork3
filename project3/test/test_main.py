@@ -3,7 +3,7 @@ import redis
 
 
 class TestMain:
-    #API_URL = "http://127.0.0.1:8000"
+    # API_URL = "http://127.0.0.1:8000"
     API_URL = "http://web:8000"
 
     # decoded_connection = redis.Redis(decode_responses=True)
