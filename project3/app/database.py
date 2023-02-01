@@ -25,7 +25,7 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()
 
-decoded_connection = redis.Redis(decode_responses=True)
+# decoded_connection = redis.Redis(decode_responses=True)
 pool = redis.ConnectionPool(host='cashe', port=6379, db=0)
 decoded_connection = redis.Redis(
     connection_pool=pool, decode_responses=True,

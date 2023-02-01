@@ -1,41 +1,25 @@
 version: '3.8'
 name: test
 services:
-  test_app:
-    container_name: test_app
-    build:
-      context: .
-      dockerfile: Dockerfile_test
-    depends_on:
-      web:
-        condition: service_healthy
-#    network_mode: "host"
-    command: "pytest app/test_main.py"
-    networks:
-      - my-net
-    expose:
-      - 6379
-      - 8000
   web:
     container_name: main_app
     build:
       context: .
-      dockerfile: Dockerfile_app
+      dockerfile: Dockerfile_test
 #    ports:
 #      - 8000:8000
     volumes:
       - ./project3/app/:/app/
     env_file:
       - ./.env
-    healthcheck:
-      test: curl -sS http://127.0.0.1:8000 || echo 1
-      interval: 5s
-      timeout: 10s
-      retries: 5
+#    healthcheck:
+#      test: curl -sS http://127.0.0.1:8000 || echo 1
+#      interval: 5s
+#      timeout: 10s
+#      retries: 5
     depends_on:
       db:
         condition: service_healthy
-    restart: always
     networks:
       - my-net
   db:

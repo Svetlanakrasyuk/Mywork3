@@ -1,26 +1,20 @@
-import requests
-import redis
+from fastapi.testclient import TestClient
+from .main import app
+
+client = TestClient(app)
 
 
 class TestMain:
-    # API_URL = "http://127.0.0.1:8000"
-    API_URL = "http://web:8000"
-
-    # decoded_connection = redis.Redis(decode_responses=True)
-    pool = redis.ConnectionPool(host='cashe', port=6379, db=0)
-    decoded_connection = redis.Redis(
-        connection_pool=pool, decode_responses=True,
-    )
 
     def get_id_menu(self):
-        r = requests.get(f"{self.API_URL}/api/v1/menus")
+        r = client.get("/api/v1/menus")
         first_id = r.json()[0]['id']
         return first_id
 
     def get_id_submenu(self):
         api_test_menu_id = self.get_id_menu()
-        r = requests.get(
-            f"{self.API_URL}/api/v1/menus/{api_test_menu_id}/submenus/?skip = 0 & limit = 100",
+        r = client.get(
+            f"/api/v1/menus/{api_test_menu_id}/submenus/?skip = 0 & limit = 100",
         )
         id_submenu = r.json()[0]['id']
         return id_submenu
@@ -28,24 +22,31 @@ class TestMain:
     def get_id_dish(self):
         api_test_menu_id = self.get_id_menu()
         id_submenu = self.get_id_submenu()
-        r = requests.get(
-            f"{self.API_URL}/api/v1/menus/{api_test_menu_id}/submenus/{id_submenu}/dishes",
+        r = client.get(
+            f"/api/v1/menus/{api_test_menu_id}/submenus/{id_submenu}/dishes",
         )
         id_dish = r.json()[0]['id']
         return id_dish
 
     def test_get_menus(self):
-        r = requests.get(f"{self.API_URL}/api/v1/menus?skip=0&limit=100")
+        r = client.get(
+                    "/api/v1/menus",
+                    # response_model=schemas.Menu,
+                    # status_code=status.HTTP_201_CREATED,
+                    # summary="Create a menu",
+                    # description="Create an menu with all the information, title, description",
+                )
+        # r = requests.get(f"{self.API_URL}/api/v1/menus?skip=0&limit=100")
         assert r.status_code == 200
 
     def test_create_menu(self):
         payload = {"title": "menu1", "description": "menu1 description"}
-        r = requests.post(f"{self.API_URL}/api/v1/menus", json=payload)
+        r = client.post("/api/v1/menus", json=payload)
         assert r.status_code == 201
 
     def test_get_menu(self):
         id = self.get_id_menu()
-        r = requests.get(f"{self.API_URL}/api/v1/menus/{id}")
+        r = client.get(f"/api/v1/menus/{id}")
         myjson = r.json()
         assert myjson['title'] == "menu1"
         assert myjson['description'] == "menu1 description"
@@ -59,8 +60,8 @@ class TestMain:
             "title": "menu1 updated",
             "description": "menu1 description updated",
         }
-        r = requests.patch(f"{self.API_URL}/api/v1/menus/{id}", json=payload)
-        r = requests.get(f"{self.API_URL}/api/v1/menus/{id}")
+        r = client.patch(f"/api/v1/menus/{id}", json=payload)
+        r = client.get(f"/api/v1/menus/{id}")
         myjson = r.json()
         assert myjson['title'] == "menu1 updated"
         assert myjson['description'] == "menu1 description updated"
@@ -70,7 +71,7 @@ class TestMain:
 
     def test_delete_menu(self):
         id = self.get_id_menu()
-        r = requests.delete(f"{self.API_URL}/api/v1/menus/{id}")
+        r = client.delete(f"/api/v1/menus/{id}")
         myjson = r.json()
         assert myjson['status'] == True
         assert myjson['message'] == "The menu has been deleted"
@@ -79,8 +80,8 @@ class TestMain:
     def test_get_submenus(self):
         self.test_create_menu()
         api_test_menu_id = self.get_id_menu()
-        r = requests.get(
-            f"{self.API_URL}/api/v1/menus/{api_test_menu_id}/submenus/?skip = 0 & limit = 100",
+        r = client.get(
+            f"/api/v1/menus/{api_test_menu_id}/submenus/?skip = 0 & limit = 100",
         )
         assert r.status_code == 200
 
@@ -90,16 +91,16 @@ class TestMain:
             "title": "submenu1", "description": "submenu1 description",
             "main_menu_id": api_test_menu_id,
         }
-        r = requests.post(
-            f"{self.API_URL}/api/v1/menus/{api_test_menu_id}/submenus", json=payload,
+        r = client.post(
+            f"/api/v1/menus/{api_test_menu_id}/submenus", json=payload,
         )
         assert r.status_code == 201
 
     def test_get_submenu(self):
         api_test_menu_id = self.get_id_menu()
         id_submenu = self.get_id_submenu()
-        r = requests.get(
-            f"{self.API_URL}/api/v1/menus/{api_test_menu_id}/submenus/{id_submenu}",
+        r = client.get(
+            f"/api/v1/menus/{api_test_menu_id}/submenus/{id_submenu}",
         )
         myjson = r.json()
         assert myjson['title'] == "submenu1"
@@ -115,11 +116,11 @@ class TestMain:
             "title": "submenu1 updated",
             "description": "submenu1 description updated",
         }
-        r = requests.patch(
-            f"{self.API_URL}/api/v1/menus/{api_test_menu_id}/submenus/{id_submenu}", json=payload,
+        client.patch(
+            f"/api/v1/menus/{api_test_menu_id}/submenus/{id_submenu}", json=payload,
         )
-        r = requests.get(
-            f"{self.API_URL}/api/v1/menus/{api_test_menu_id}/submenus/{id_submenu}",
+        r = client.get(
+            f"/api/v1/menus/{api_test_menu_id}/submenus/{id_submenu}",
         )
         myjson = r.json()
         assert myjson['title'] == "submenu1 updated"
@@ -131,8 +132,8 @@ class TestMain:
     def test_delete_submenu(self):
         api_test_menu_id = self.get_id_menu()
         id_submenu = self.get_id_submenu()
-        r = requests.delete(
-            f"{self.API_URL}/api/v1/menus/{api_test_menu_id}/submenus/{id_submenu}",
+        r = client.delete(
+            f"/api/v1/menus/{api_test_menu_id}/submenus/{id_submenu}",
         )
         myjson = r.json()
         assert myjson['status'] == True
@@ -143,8 +144,8 @@ class TestMain:
         self.test_create_submenu()
         api_test_menu_id = self.get_id_menu()
         id_submenu = self.get_id_submenu()
-        r = requests.get(
-            f"{self.API_URL}/api/v1/menus/{api_test_menu_id}/submenus/{id_submenu}/dishes",
+        r = client.get(
+            f"/api/v1/menus/{api_test_menu_id}/submenus/{id_submenu}/dishes",
         )
         assert r.status_code == 200
 
@@ -157,8 +158,8 @@ class TestMain:
             "submenu_id": id_submenu,
             "price": "10.20",
         }
-        r = requests.post(
-            f"{self.API_URL}/api/v1/menus/{api_test_menu_id}/submenus/{id_submenu}/dishes", json=payload,
+        r = client.post(
+            f"/api/v1/menus/{api_test_menu_id}/submenus/{id_submenu}/dishes", json=payload,
         )
         myjson = r.json()
         assert myjson['title'] == "dish1"
@@ -171,8 +172,8 @@ class TestMain:
         api_test_menu_id = self.get_id_menu()
         id_submenu = self.get_id_submenu()
         id_dish = self.get_id_dish()
-        r = requests.get(
-            f"{self.API_URL}/api/v1/menus/{api_test_menu_id}/submenus/{id_submenu}/dishes/{id_dish}",
+        r = client.get(
+            f"/api/v1/menus/{api_test_menu_id}/submenus/{id_submenu}/dishes/{id_dish}",
         )
         myjson = r.json()
         assert myjson['title'] == "dish1"
@@ -190,11 +191,11 @@ class TestMain:
             "description": "dish1 description updated",
             "price": "20.30",
         }
-        r = requests.patch(
-            f"{self.API_URL}/api/v1/menus/{api_test_menu_id}/submenus/{id_submenu}/dishes/{id_dish}", json=payload,
+        client.patch(
+            f"/api/v1/menus/{api_test_menu_id}/submenus/{id_submenu}/dishes/{id_dish}", json=payload,
         )
-        r = requests.get(
-            f"{self.API_URL}/api/v1/menus/{api_test_menu_id}/submenus/{id_submenu}/dishes/{id_dish}",
+        r = client.get(
+            f"/api/v1/menus/{api_test_menu_id}/submenus/{id_submenu}/dishes/{id_dish}",
         )
         myjson = r.json()
         assert myjson['title'] == "dish1 updated"
@@ -206,8 +207,8 @@ class TestMain:
         api_test_menu_id = self.get_id_menu()
         id_submenu = self.get_id_submenu()
         id_dish = self.get_id_dish()
-        r = requests.delete(
-            f"{self.API_URL}/api/v1/menus/{api_test_menu_id}/submenus/{id_submenu}/dishes/{id_dish}",
+        r = client.delete(
+            f"/api/v1/menus/{api_test_menu_id}/submenus/{id_submenu}/dishes/{id_dish}",
         )
         myjson = r.json()
         assert myjson['status'] == True
